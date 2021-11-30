@@ -9,11 +9,8 @@ let todos = [
 const server = http.createServer((req, res) => {
   const headers = {
     "Access-Control-Allow-Origin": "*",
-    // "Access-Control-Request-Method": "*",
     "Access-Control-Allow-Headers": "origin, content-type, accept",
     "Access-Control-Allow-Methods": "OPTIONS, POST, GET, PATCH, DELETE",
-    // "Access-Control-Max-Age": 2592000, // 30 days
-    /** add other headers as per requirement */
   };
 
   if (req.method === "OPTIONS") {
@@ -22,7 +19,6 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // if (["GET", "POST", "PATCH", "DELETE"].indexOf(req.method) > -1) {
   res.writeHead(200, headers);
   const todoId = Number(url.parse(req.url, true).query.todoId);
 
@@ -113,11 +109,6 @@ const server = http.createServer((req, res) => {
     res.writeHead(404, headers);
     res.end(JSON.stringify({ error: "Resource not found" }));
   }
-  // return;
-  // }
-
-  // res.writeHead(405, headers);
-  // res.end(`${req.method} is not allowed for the request.`);
 });
 
 const PORT = 8050;
