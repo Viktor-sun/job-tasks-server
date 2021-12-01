@@ -2,8 +2,9 @@ const http = require("http");
 const url = require("url");
 
 let todos = [
-  { id: 1, todo: "asd" },
-  { id: 2, todo: "asdas" },
+  { id: 3, todo: "<script></scriptasasf", completed: false },
+  { id: 4, todo: "asf", completed: true },
+  { id: 5, todo: "asf", completed: false },
 ];
 
 const server = http.createServer((req, res) => {
@@ -68,7 +69,25 @@ const server = http.createServer((req, res) => {
     if (hasTodo) {
       req.on("data", (data) => {
         res.writeHead(200, headers);
-        const { updatedTodo } = JSON.parse(data);
+        const { updatedTodo, select } = JSON.parse(data);
+
+        if (select) {
+          todos.forEach((todo) => {
+            if (todo.id === todoId) {
+              todo.completed = !todo.completed;
+            }
+          });
+
+          res.end(
+            JSON.stringify({
+              status: "success",
+              code: 200,
+              message: "todo select",
+              todos,
+            })
+          );
+          return;
+        }
 
         todos = todos.map((todo) => {
           if (todoId === todo.id) {
@@ -96,6 +115,22 @@ const server = http.createServer((req, res) => {
         })
       );
     }
+  } else if (req.url === "/todos/select.all" && req.method === "POST") {
+    res.writeHead(200, headers);
+
+    const isAllCompleted = todos.every((e) => e.completed);
+    isAllCompleted
+      ? todos.map((todo) => (todo.completed = false))
+      : todos.map((todo) => (todo.completed = true));
+
+    res.end(
+      JSON.stringify({
+        status: "success",
+        code: 200,
+        message: `select all = ${isAllCompleted}`,
+        todos,
+      })
+    );
   } else if (!todoId) {
     res.writeHead(400, headers, "bad request");
     res.end(
