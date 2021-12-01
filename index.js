@@ -131,6 +131,17 @@ const server = http.createServer((req, res) => {
         todos,
       })
     );
+  } else if (req.url === "/todos/clear.completed" && req.method === "POST") {
+    res.writeHead(200, headers);
+    todos = todos.filter((todo) => !todo.completed);
+    res.end(
+      JSON.stringify({
+        status: "success",
+        code: 200,
+        message: "clear completed",
+        todos,
+      })
+    );
   } else if (!todoId) {
     res.writeHead(400, headers, "bad request");
     res.end(
