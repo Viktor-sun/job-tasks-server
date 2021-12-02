@@ -49,11 +49,7 @@ const server = http.createServer((req, res) => {
   } else if (todoId && req.method === "DELETE") {
     const hasTodo = todos.find((todo) => todo.id === todoId);
 
-    if (hasTodo) {
-      res.writeHead(204, "todo deleted", headers);
-      todos = todos.filter((todo) => todo.id !== todoId);
-      res.end();
-    } else {
+    if (!hasTodo) {
       res.writeHead(404, headers);
       res.end(
         JSON.stringify({
@@ -62,7 +58,19 @@ const server = http.createServer((req, res) => {
           message: "todo not found",
         })
       );
+      return;
     }
+
+    res.writeHead(200, "todo deleted", headers);
+    todos = todos.filter((todo) => todo.id !== todoId);
+    res.end(
+      JSON.stringify({
+        status: "success",
+        code: 200,
+        message: "todo deleted",
+        todos,
+      })
+    );
   } else if (todoId && req.method === "PATCH") {
     const hasTodo = todos.find((todo) => todo.id === todoId);
 
@@ -118,16 +126,25 @@ const server = http.createServer((req, res) => {
   } else if (req.url === "/todos/select.all" && req.method === "POST") {
     res.writeHead(200, headers);
 
-    const isAllCompleted = todos.every((e) => e.completed);
-    isAllCompleted
-      ? todos.map((todo) => (todo.completed = false))
-      : todos.map((todo) => (todo.completed = true));
+    todos.map((todo) => (todo.completed = true));
 
     res.end(
       JSON.stringify({
         status: "success",
         code: 200,
-        message: `select all = ${isAllCompleted}`,
+        message: "select all",
+        todos,
+      })
+    );
+  } else if (req.url === "/todos/unselect.all" && req.method === "POST") {
+    res.writeHead(200, headers);
+    todos.map((todo) => (todo.completed = false));
+
+    res.end(
+      JSON.stringify({
+        status: "success",
+        code: 200,
+        message: `unselect all`,
         todos,
       })
     );
