@@ -20,5 +20,8 @@
   "homepage": "https://github.com/Viktor-sun/job-tasks-server#readme",
   "devDependencies": {
     "nodemon": "^2.0.15"
+  },
+  "dependencies": {
+    "mongoose": "^6.0.14"
   }
 }

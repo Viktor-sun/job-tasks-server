@@ -1,13 +1,9 @@
 const http = require("http");
 const url = require("url");
+const db = require("./model/db");
+const Todo = require("./model/schema-todos");
 
-let todos = [
-  { id: 3, todo: "<script></scriptasasf", completed: false },
-  { id: 4, todo: "asf", completed: true },
-  { id: 5, todo: "asf", completed: false },
-];
-
-const server = http.createServer((req, res) => {
+const server = http.createServer(async (req, res) => {
   const headers = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "origin, content-type, accept",
@@ -21,35 +17,37 @@ const server = http.createServer((req, res) => {
   }
 
   res.writeHead(200, headers);
-  const todoId = Number(url.parse(req.url, true).query.todoId);
+  const todoId = url.parse(req.url, true).query.todoId;
 
   if (req.url === "/todos" && req.method === "GET") {
     res.writeHead(200, headers);
+
+    const todos = await Todo.find({});
     res.end(
       JSON.stringify({
         status: "success",
         code: 200,
-        todos: todos,
+        todos,
       })
     );
   } else if (req.url === "/todos" && req.method === "POST") {
-    req.on("data", (data) => {
+    req.on("data", async (data) => {
       res.writeHead(201, headers);
-      todos.push(JSON.parse(data));
+      const todos = await Todo.create(JSON.parse(data));
 
       res.end(
         JSON.stringify({
           status: "success",
           code: 201,
           message: "todo added",
-          todos,
+          data: todos,
         })
       );
     });
   } else if (todoId && req.method === "DELETE") {
-    const hasTodo = todos.find((todo) => todo.id === todoId);
+    const todo = await Todo.findByIdAndRemove({ _id: todoId });
 
-    if (!hasTodo) {
+    if (!todo) {
       res.writeHead(404, headers);
       res.end(
         JSON.stringify({
@@ -62,58 +60,16 @@ const server = http.createServer((req, res) => {
     }
 
     res.writeHead(200, "todo deleted", headers);
-    todos = todos.filter((todo) => todo.id !== todoId);
     res.end(
       JSON.stringify({
         status: "success",
         code: 200,
         message: "todo deleted",
-        todos,
+        todo,
       })
     );
   } else if (todoId && req.method === "PATCH") {
-    const hasTodo = todos.find((todo) => todo.id === todoId);
-
-    if (hasTodo) {
-      req.on("data", (data) => {
-        res.writeHead(200, headers);
-        const { updatedTodo, select } = JSON.parse(data);
-
-        if (select) {
-          todos.forEach((todo) => {
-            if (todo.id === todoId) {
-              todo.completed = !todo.completed;
-            }
-          });
-
-          res.end(
-            JSON.stringify({
-              status: "success",
-              code: 200,
-              message: "todo select",
-              todos,
-            })
-          );
-          return;
-        }
-
-        todos = todos.map((todo) => {
-          if (todoId === todo.id) {
-            todo.todo = updatedTodo;
-          }
-          return todo;
-        });
-
-        res.end(
-          JSON.stringify({
-            status: "success",
-            code: 200,
-            message: "todo updated",
-            todos,
-          })
-        );
-      });
-    } else {
+    const getNotFound = () => {
       res.writeHead(404, headers);
       res.end(
         JSON.stringify({
@@ -122,41 +78,89 @@ const server = http.createServer((req, res) => {
           message: "todo not found",
         })
       );
-    }
+    };
+
+    req.on("data", async (data) => {
+      res.writeHead(200, headers);
+      const { updatedTodo, select } = JSON.parse(data);
+
+      if (select !== undefined) {
+        const todo = await Todo.findOneAndUpdate(
+          { _id: todoId },
+          { completed: select },
+          { new: true }
+        );
+
+        if (!todo) {
+          getNotFound();
+          return;
+        }
+
+        res.end(
+          JSON.stringify({
+            status: "success",
+            code: 200,
+            message: "todo select",
+            todo,
+          })
+        );
+        return;
+      }
+
+      const todo = await Todo.findOneAndUpdate(
+        { _id: todoId },
+        { todo: updatedTodo },
+        { new: true }
+      );
+
+      if (!todo) {
+        getNotFound();
+        return;
+      }
+
+      res.end(
+        JSON.stringify({
+          status: "success",
+          code: 200,
+          message: "todo updated",
+          todo,
+        })
+      );
+    });
   } else if (req.url === "/todos/select.all" && req.method === "POST") {
     res.writeHead(200, headers);
-
-    todos.map((todo) => (todo.completed = true));
+    const todo = await Todo.updateMany({}, { completed: true });
 
     res.end(
       JSON.stringify({
         status: "success",
         code: 200,
         message: "select all",
-        todos,
+        todo,
       })
     );
   } else if (req.url === "/todos/unselect.all" && req.method === "POST") {
     res.writeHead(200, headers);
-    todos.map((todo) => (todo.completed = false));
+    const todo = await Todo.updateMany({}, { completed: false });
 
     res.end(
       JSON.stringify({
         status: "success",
         code: 200,
         message: `unselect all`,
-        todos,
+        todo,
       })
     );
   } else if (req.url === "/todos/clear.completed" && req.method === "POST") {
     res.writeHead(200, headers);
-    todos = todos.filter((todo) => !todo.completed);
+    const todo = await Todo.deleteMany({ completed: true });
+
     res.end(
       JSON.stringify({
         status: "success",
         code: 200,
         message: "clear completed",
-        todos,
+        todo,
       })
     );
   } else if (!todoId) {
@@ -175,6 +179,11 @@ const server = http.createServer((req, res) => {
 });
 
 const PORT = 8050;
-server.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+
+db.then(() => {
+  server.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
+  });
+}).catch((e) => {
+  console.log(`Error: ${e.message}`);
 });
