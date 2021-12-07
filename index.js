@@ -26,6 +26,7 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(HttpCode.OK, headers);
 
       const todos = await Todo.find({});
+
       res.end(
         JSON.stringify({
           status: "success",
@@ -208,8 +209,8 @@ const server = http.createServer(async (req, res) => {
         res.writeHead(HttpCode.OK, "user created", headers);
 
         const parsedBody = JSON.parse(body);
-        const hasUser = await User.find({ name: parsedBody.name });
-        if (hasUser.length !== 0) {
+        const hasUser = await User.findOne({ name: parsedBody.name });
+        if (hasUser) {
           res.end(
             JSON.stringify({
               status: "error",
@@ -237,9 +238,9 @@ const server = http.createServer(async (req, res) => {
   } else if (req.url === "/users/login" && req.method === "POST") {
     try {
       req.on("data", async (body) => {
-        const user = await User.find(JSON.parse(body));
+        const user = await User.findOne(JSON.parse(body));
 
-        if (user.length === 0) {
+        if (!user) {
           res.writeHead(
             HttpCode.UNAUTHORIZED,
             "name or password is wrong",
