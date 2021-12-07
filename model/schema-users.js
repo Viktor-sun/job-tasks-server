@@ -2,7 +2,7 @@ const { Schema, model } = require("mongoose");
 
 const usersSchema = new Schema(
   {
-    name: { type: String, default: "Guest" },
+    name: { type: String, required: [true, "field name is required"] },
     password: { type: String, required: [true, "field password is required"] },
   },
   {
