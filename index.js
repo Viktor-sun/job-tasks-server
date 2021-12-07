@@ -206,11 +206,10 @@ const server = http.createServer(async (req, res) => {
   else if (req.url === "/users/signup" && req.method === "POST") {
     try {
       req.on("data", async (body) => {
-        res.writeHead(HttpCode.OK, "user created", headers);
-
         const parsedBody = JSON.parse(body);
         const hasUser = await User.findOne({ name: parsedBody.name });
         if (hasUser) {
+          res.writeHead(HttpCode.CONFLICT, "name in use", headers);
           res.end(
             JSON.stringify({
               status: "error",
@@ -222,6 +221,7 @@ const server = http.createServer(async (req, res) => {
         }
 
         const user = await new User(parsedBody).save();
+        res.writeHead(HttpCode.OK, "user created", headers);
         res.end(
           JSON.stringify({
             status: "success",
