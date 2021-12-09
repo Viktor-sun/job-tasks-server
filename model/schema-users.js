@@ -4,6 +4,10 @@ const usersSchema = new Schema(
   {
     name: { type: String, required: [true, "field name is required"] },
     password: { type: String, required: [true, "field password is required"] },
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     versionKey: false,

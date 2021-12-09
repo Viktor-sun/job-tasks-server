@@ -25,7 +25,7 @@ const server = http.createServer(async (req, res) => {
     try {
       res.writeHead(HttpCode.OK, headers);
 
-      const todos = await Todo.find({});
+      const todos = await Todo.find({ owner: "61af45cbe7d583c98fd15bd2" });
 
       res.end(
         JSON.stringify({
@@ -42,7 +42,9 @@ const server = http.createServer(async (req, res) => {
     try {
       req.on("data", async (data) => {
         res.writeHead(HttpCode.CREATED, "todo added", headers);
-        const todos = await Todo.create(JSON.parse(data));
+
+        const userId = "61af45cbe7d583c98fd15bd2";
+        const todos = await Todo.create({ ...JSON.parse(data), owner: userId });
 
         res.end(
           JSON.stringify({
@@ -203,7 +205,25 @@ const server = http.createServer(async (req, res) => {
   }
 
   // user ==========================================================================
-  else if (req.url === "/users/signup" && req.method === "POST") {
+  else if (req.url === "/users/current" && req.method === "POST") {
+    req.on("data", async (body) => {
+      try {
+        const user = await User.findOne(JSON.parse(body));
+        res.writeHead(HttpCode.OK, "current user", headers);
+        res.end(
+          JSON.stringify({
+            status: "success",
+            code: HttpCode.OK,
+            message: "current user",
+            user,
+          })
+        );
+      } catch (error) {
+        res.writeHead(HttpCode.INTERNAL_SERVER_ERROR, headers);
+        res.end(error);
+      }
+    });
+  } else if (req.url === "/users/signup" && req.method === "POST") {
     try {
       req.on("data", async (body) => {
         const parsedBody = JSON.parse(body);
@@ -256,12 +276,17 @@ const server = http.createServer(async (req, res) => {
           return;
         }
 
+        const userVerified = await User.findOneAndUpdate(
+          { _id: user._id },
+          { isVerified: true },
+          { new: true }
+        );
         res.writeHead(HttpCode.OK, headers);
         res.end(
           JSON.stringify({
             status: "success",
             code: HttpCode.OK,
-            user,
+            user: userVerified,
           })
         );
       });
@@ -269,7 +294,30 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(HttpCode.INTERNAL_SERVER_ERROR, headers);
       res.end(error);
     }
+  } else if (req.url === "/users/logout" && req.method === "POST") {
+    req.on("data", async (body) => {
+      try {
+        const user = await User.findOneAndUpdate(
+          JSON.parse(body),
+          { isVerified: false },
+          { new: true }
+        );
+        res.writeHead(HttpCode.OK, "user logout", headers);
+        res.end(
+          JSON.stringify({
+            status: "success",
+            code: HttpCode.OK,
+            message: "user logout",
+            user,
+          })
+        );
+      } catch (error) {
+        res.writeHead(HttpCode.INTERNAL_SERVER_ERROR, headers);
+        res.end(error);
+      }
+    });
   }
+
   // user ==========================================================================
   else if (!todoId) {
     res.writeHead(HttpCode.BAD_REQUEST, "bad request", headers);
