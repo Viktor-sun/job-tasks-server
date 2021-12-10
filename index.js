@@ -22,29 +22,32 @@ const server = http.createServer(async (req, res) => {
   const todoId = url.parse(req.url, true).query.todoId;
 
   if (req.url === "/todos" && req.method === "GET") {
-    try {
-      res.writeHead(HttpCode.OK, headers);
+    req.on("data", async (data) => {
+      try {
+        res.writeHead(HttpCode.OK, headers);
 
-      const todos = await Todo.find({ owner: "61af45cbe7d583c98fd15bd2" });
+        const todos = await Todo.find({
+          owner: JSON.parse(data).id,
+        }).populate({ path: "owner", select: "_id name" });
 
-      res.end(
-        JSON.stringify({
-          status: "success",
-          code: HttpCode.OK,
-          todos,
-        })
-      );
-    } catch (error) {
-      res.writeHead(HttpCode.INTERNAL_SERVER_ERROR, headers);
-      res.end(error);
-    }
+        res.end(
+          JSON.stringify({
+            status: "success",
+            code: HttpCode.OK,
+            todos,
+          })
+        );
+      } catch (error) {
+        res.writeHead(HttpCode.INTERNAL_SERVER_ERROR, headers);
+        res.end(error);
+      }
+    });
   } else if (req.url === "/todos" && req.method === "POST") {
     try {
       req.on("data", async (data) => {
         res.writeHead(HttpCode.CREATED, "todo added", headers);
 
-        const userId = "61af45cbe7d583c98fd15bd2";
-        const todos = await Todo.create({ ...JSON.parse(data), owner: userId });
+        const todos = await Todo.create(JSON.parse(data));
 
         res.end(
           JSON.stringify({
@@ -60,34 +63,39 @@ const server = http.createServer(async (req, res) => {
       res.end(error);
     }
   } else if (todoId && req.method === "DELETE") {
-    try {
-      const todo = await Todo.findByIdAndRemove({ _id: todoId });
+    req.on("data", async (data) => {
+      try {
+        const todo = await Todo.findByIdAndRemove({
+          _id: todoId,
+          ...JSON.parse(data),
+        });
 
-      if (!todo) {
-        res.writeHead(HttpCode.NOT_FOUND, headers);
+        if (!todo) {
+          res.writeHead(HttpCode.NOT_FOUND, headers);
+          res.end(
+            JSON.stringify({
+              status: "error",
+              code: HttpCode.NOT_FOUND,
+              message: "todo not found",
+            })
+          );
+          return;
+        }
+
+        res.writeHead(HttpCode.OK, "todo deleted", headers);
         res.end(
           JSON.stringify({
-            status: "error",
-            code: HttpCode.NOT_FOUND,
-            message: "todo not found",
+            status: "success",
+            code: HttpCode.OK,
+            message: "todo deleted",
+            todo,
           })
         );
-        return;
+      } catch (error) {
+        res.writeHead(HttpCode.INTERNAL_SERVER_ERROR, headers);
+        res.end(error);
       }
-
-      res.writeHead(HttpCode.OK, "todo deleted", headers);
-      res.end(
-        JSON.stringify({
-          status: "success",
-          code: HttpCode.OK,
-          message: "todo deleted",
-          todo,
-        })
-      );
-    } catch (error) {
-      res.writeHead(HttpCode.INTERNAL_SERVER_ERROR, headers);
-      res.end(error);
-    }
+    });
   } else if (todoId && req.method === "PATCH") {
     const getNotFound = () => {
       res.writeHead(HttpCode.NOT_FOUND, "todo not found", headers);
@@ -102,11 +110,11 @@ const server = http.createServer(async (req, res) => {
     try {
       req.on("data", async (data) => {
         res.writeHead(HttpCode.OK, headers);
-        const { updatedTodo, select } = JSON.parse(data);
+        const { updatedTodo, select, owner } = JSON.parse(data);
 
         if (select !== undefined) {
           const todo = await Todo.findOneAndUpdate(
-            { _id: todoId },
+            { _id: todoId, owner },
             { completed: select },
             { new: true }
           );
@@ -128,7 +136,7 @@ const server = http.createServer(async (req, res) => {
         }
 
         const todo = await Todo.findOneAndUpdate(
-          { _id: todoId },
+          { _id: todoId, owner },
           { todo: updatedTodo },
           { new: true }
         );
@@ -152,56 +160,69 @@ const server = http.createServer(async (req, res) => {
       res.end(error);
     }
   } else if (req.url === "/todos/select.all" && req.method === "POST") {
-    try {
-      res.writeHead(HttpCode.OK, "select all", headers);
-      const todo = await Todo.updateMany({}, { completed: true });
+    req.on("data", async (data) => {
+      try {
+        res.writeHead(HttpCode.OK, "select all", headers);
+        const todo = await Todo.updateMany(JSON.parse(data), {
+          completed: true,
+        });
 
-      res.end(
-        JSON.stringify({
-          status: "success",
-          code: HttpCode.OK,
-          message: "select all",
-          todo,
-        })
-      );
-    } catch (error) {
-      res.writeHead(HttpCode.INTERNAL_SERVER_ERROR, headers);
-      res.end(error);
-    }
+        res.end(
+          JSON.stringify({
+            status: "success",
+            code: HttpCode.OK,
+            message: "select all",
+            todo,
+          })
+        );
+      } catch (error) {
+        res.writeHead(HttpCode.INTERNAL_SERVER_ERROR, headers);
+        res.end(error);
+      }
+    });
   } else if (req.url === "/todos/unselect.all" && req.method === "POST") {
-    try {
-      res.writeHead(HttpCode.OK, "unselect all", headers);
-      const todo = await Todo.updateMany({}, { completed: false });
+    req.on("data", async (data) => {
+      try {
+        res.writeHead(HttpCode.OK, "unselect all", headers);
+        const todo = await Todo.updateMany(JSON.parse(data), {
+          completed: false,
+        });
 
-      res.end(
-        JSON.stringify({
-          status: "success",
-          code: HttpCode.OK,
-          message: "unselect all",
-          todo,
-        })
-      );
-    } catch (error) {
-      res.writeHead(HttpCode.INTERNAL_SERVER_ERROR, headers);
-      res.end(error);
-    }
+        res.end(
+          JSON.stringify({
+            status: "success",
+            code: HttpCode.OK,
+            message: "unselect all",
+            todo,
+          })
+        );
+      } catch (error) {
+        res.writeHead(HttpCode.INTERNAL_SERVER_ERROR, headers);
+        res.end(error);
+      }
+    });
   } else if (req.url === "/todos/clear.completed" && req.method === "POST") {
-    try {
-      res.writeHead(HttpCode.OK, "clear completed", headers);
-      const todo = await Todo.deleteMany({ completed: true });
+    req.on("data", async (data) => {
+      try {
+        res.writeHead(HttpCode.OK, "clear completed", headers);
+        const todo = await Todo.deleteMany({
+          ...JSON.parse(data),
+          completed: true,
+        });
 
-      res.end(
-        JSON.stringify({
-          status: "success",
-          code: HttpCode.OK,
-          message: "clear completed",
-          todo,
-        })
-      );
-    } catch (error) {
-      res.writeHead(HttpCode.INTERNAL_SERVER_ERROR, headers);
-      res.end(error);
-    }
+        res.end(
+          JSON.stringify({
+            status: "success",
+            code: HttpCode.OK,
+            message: "clear completed",
+            todo,
+          })
+        );
+      } catch (error) {
+        res.writeHead(HttpCode.INTERNAL_SERVER_ERROR, headers);
+        res.end(error);
+      }
+    });
   }
 
   // user ==========================================================================
