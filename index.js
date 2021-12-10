@@ -20,41 +20,40 @@ const server = http.createServer(async (req, res) => {
 
   res.writeHead(HttpCode.OK, headers);
   const todoId = url.parse(req.url, true).query.todoId;
+  const userId = url.parse(req.url, true).query.userId;
 
-  if (req.url === "/todos" && req.method === "GET") {
-    req.on("data", async (data) => {
-      try {
-        res.writeHead(HttpCode.OK, headers);
+  if (userId && req.method === "GET") {
+    try {
+      res.writeHead(HttpCode.OK, headers);
 
-        const todos = await Todo.find({
-          owner: JSON.parse(data).id,
-        }).populate({ path: "owner", select: "_id name" });
+      const todos = await Todo.find({
+        owner: userId,
+      }).populate({ path: "owner", select: "_id name" });
 
-        res.end(
-          JSON.stringify({
-            status: "success",
-            code: HttpCode.OK,
-            todos,
-          })
-        );
-      } catch (error) {
-        res.writeHead(HttpCode.INTERNAL_SERVER_ERROR, headers);
-        res.end(error);
-      }
-    });
+      res.end(
+        JSON.stringify({
+          status: "success",
+          code: HttpCode.OK,
+          todos,
+        })
+      );
+    } catch (error) {
+      res.writeHead(HttpCode.INTERNAL_SERVER_ERROR, headers);
+      res.end(error);
+    }
   } else if (req.url === "/todos" && req.method === "POST") {
     try {
       req.on("data", async (data) => {
         res.writeHead(HttpCode.CREATED, "todo added", headers);
 
-        const todos = await Todo.create(JSON.parse(data));
+        const todo = await Todo.create(JSON.parse(data));
 
         res.end(
           JSON.stringify({
             status: "success",
             code: HttpCode.CREATED,
             message: "todo added",
-            data: todos,
+            todo,
           })
         );
       });
@@ -68,7 +67,7 @@ const server = http.createServer(async (req, res) => {
         const todo = await Todo.findByIdAndRemove({
           _id: todoId,
           ...JSON.parse(data),
-        });
+        }).populate({ path: "owner", select: "_id name" });
 
         if (!todo) {
           res.writeHead(HttpCode.NOT_FOUND, headers);
@@ -117,7 +116,7 @@ const server = http.createServer(async (req, res) => {
             { _id: todoId, owner },
             { completed: select },
             { new: true }
-          );
+          ).populate({ path: "owner", select: "_id name" });
 
           if (!todo) {
             getNotFound();
@@ -139,7 +138,7 @@ const server = http.createServer(async (req, res) => {
           { _id: todoId, owner },
           { todo: updatedTodo },
           { new: true }
-        );
+        ).populate({ path: "owner", select: "_id name" });
 
         if (!todo) {
           getNotFound();
@@ -165,7 +164,7 @@ const server = http.createServer(async (req, res) => {
         res.writeHead(HttpCode.OK, "select all", headers);
         const todo = await Todo.updateMany(JSON.parse(data), {
           completed: true,
-        });
+        }).populate({ path: "owner", select: "_id name" });
 
         res.end(
           JSON.stringify({
@@ -186,7 +185,7 @@ const server = http.createServer(async (req, res) => {
         res.writeHead(HttpCode.OK, "unselect all", headers);
         const todo = await Todo.updateMany(JSON.parse(data), {
           completed: false,
-        });
+        }).populate({ path: "owner", select: "_id name" });
 
         res.end(
           JSON.stringify({
@@ -208,7 +207,7 @@ const server = http.createServer(async (req, res) => {
         const todo = await Todo.deleteMany({
           ...JSON.parse(data),
           completed: true,
-        });
+        }).populate({ path: "owner", select: "_id name" });
 
         res.end(
           JSON.stringify({
