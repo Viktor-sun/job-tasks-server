@@ -1,5 +1,5 @@
-const { HttpCode } = require("../helpers/constants");
-const todosRepository = require("../repositories/repository-todos");
+const { HttpCode } = require("../constants/constants");
+const todosRepository = require("../repositories/todos");
 
 const getAll = async (_req, res, next) => {
   try {

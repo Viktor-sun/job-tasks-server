@@ -1,19 +1,16 @@
 const express = require("express");
 const app = express();
 const cors = require("cors");
-const { HttpCode } = require("./helpers/constants");
-const db = require("./model/db");
+const logger = require("morgan");
+const { HttpCode } = require("./constants/constants");
 
-const PORT = 8050;
-
-const todosRouter = require("./routes/api-todos");
-const usersRouter = require("./routes/api-users");
+const formatsLogger = app.get("env") === "development" ? "dev" : "short";
 
 app.use(cors());
 app.use(express.json({ limit: 10000 }));
+app.use(logger(formatsLogger));
 
-app.use("/api/todos", todosRouter);
-app.use("/api/users", usersRouter);
+app.use("/", require("./routes"));
 
 app.use((_req, res, _next) => {
   res.status(HttpCode.NOT_FOUND).json({
@@ -33,10 +30,4 @@ app.use((err, _req, res, _next) => {
   });
 });
 
-db.then(() => {
-  app.listen(PORT, () => {
-    console.log(`Server is running on port: ${PORT}`);
-  });
-}).catch((e) => {
-  console.log(`Error: ${e.message}`);
-});
+module.exports = app;

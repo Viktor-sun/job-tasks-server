@@ -1,6 +1,6 @@
 const bcrypt = require("bcryptjs");
-const { HttpCode } = require("../helpers/constants");
-const usersRepository = require("../repositories/repository-users");
+const { HttpCode } = require("../constants/constants");
+const usersRepository = require("../repositories/users");
 
 const singup = async (req, res, next) => {
   const { name, password } = req.body;
