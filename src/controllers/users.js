@@ -15,10 +15,11 @@ const singup = async (req, res, next) => {
 
     const hash = await bcrypt.hash(password, 8);
     const user = await usersRepository.signup({ name, password: hash });
+    const userLogined = await usersRepository.login(user._id);
     res.status(HttpCode.OK).json({
       status: "success",
       code: HttpCode.OK,
-      data: { user },
+      data: { user: userLogined },
     });
   } catch (error) {
     next(error);
@@ -38,6 +39,22 @@ const login = async (req, res, next) => {
       });
     }
 
+    const userLogined = await usersRepository.login(user._id);
+
+    res.status(HttpCode.OK).json({
+      status: "success",
+      code: HttpCode.OK,
+      data: { user: userLogined },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const logout = async (req, res, next) => {
+  try {
+    const user = await usersRepository.logout(req.body._id);
+
     res.status(HttpCode.OK).json({
       status: "success",
       code: HttpCode.OK,
@@ -48,4 +65,17 @@ const login = async (req, res, next) => {
   }
 };
 
-module.exports = { singup, login };
+const getCurrent = async (req, res, next) => {
+  try {
+    const user = await usersRepository.findById(req.params.userId);
+    res.status(HttpCode.OK).json({
+      status: "success",
+      code: HttpCode.OK,
+      data: { user },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { singup, login, logout, getCurrent };
