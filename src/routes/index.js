@@ -1,7 +1,9 @@
 const express = require("express");
 const router = express.Router();
 
-router.use("/api/todos", require("./api-todos"));
+router.use("/api/board", require("./api-board"));
+router.use("/api/columns", require("./api-column"));
+router.use("/api/cards", require("./api-card"));
 router.use("/api/users", require("./api-users"));
 
 module.exports = router;

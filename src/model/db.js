@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const db = mongoose.connect("mongodb://localhost/todos_db");
+const db = mongoose.connect("mongodb://localhost/trello_db");
 
 mongoose.connection.on("connected", () => {
   console.log("Database connection successful.");
