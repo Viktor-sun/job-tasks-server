@@ -19,8 +19,14 @@ const removeCard = async (cardId) => {
   return card;
 };
 
+const editCard = async (cardId, body) => {
+  const card = await Card.findByIdAndUpdate(cardId, body, { new: true });
+  return card;
+};
+
 module.exports = {
   addCard,
   getAllCards,
   removeCard,
+  editCard,
 };

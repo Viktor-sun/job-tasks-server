@@ -5,6 +5,7 @@ const controllers = require("../controllers/card");
 router
   .get("/", controllers.getAllCards)
   .post("/:columnId", controllers.addCard)
-  .delete("/:cardId", controllers.removeCard);
+  .delete("/:cardId", controllers.removeCard)
+  .post("/:cardId/edit", controllers.editCard);
 
 module.exports = router;

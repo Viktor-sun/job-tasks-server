@@ -42,4 +42,18 @@ const removeCard = async (req, res, next) => {
   }
 };
 
-module.exports = { addCard, getAllCards, removeCard };
+const editCard = async (req, res, next) => {
+  try {
+    const card = await cardRepository.editCard(req.params.cardId, req.body);
+
+    res.status(HttpCode.OK).json({
+      status: "success",
+      code: HttpCode.OK,
+      data: { card },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { addCard, getAllCards, removeCard, editCard };
