@@ -6,7 +6,7 @@ const boardSchema = new Schema(
     bgColor: { type: String, default: "#fff" },
 
     columns: { type: Array, set: (data) => (!data ? [] : data) },
-    colors: [String],
+    labels: { type: Array, set: (data) => (!data ? [] : data) },
   },
   { versionKey: false }
 );

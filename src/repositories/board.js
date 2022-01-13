@@ -31,9 +31,18 @@ const removeColumn = async (boardId, columnId) => {
   );
 };
 
+const addLabel = async (boardId, labelId) => {
+  const board = await Board.updateOne(
+    { _id: boardId },
+    { $push: { labels: { labelId } } }
+  );
+  return board;
+};
+
 module.exports = {
   createBoard,
   getAllBoards,
   addColumn,
   removeColumn,
+  addLabel,
 };
