@@ -3,11 +3,15 @@ const { Schema, model } = require("mongoose");
 const usersSchema = new Schema(
   {
     name: { type: String, required: [true, "field name is required"] },
-    password: { type: String, required: [true, "field password is required"] },
-    isVerified: {
-      type: Boolean,
-      default: false,
+    password: {
+      type: String,
+      required: [true, "field password is required"],
     },
+    token: { type: String, default: null },
+    // isVerified: {
+    //   type: Boolean,
+    //   default: false,
+    // },
   },
   {
     versionKey: false,

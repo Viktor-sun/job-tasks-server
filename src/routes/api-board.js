@@ -1,15 +1,12 @@
 const express = require("express");
 const router = express.Router();
 const controllers = require("../controllers/board");
+const guard = require("../helpers/guard");
 
 router
-  .get("/", controllers.getAllBoards)
+  .get("/", guard, controllers.getAllBoards)
   .post("/", controllers.createBoard)
-  .post("/:boardId/columns", controllers.addColumn)
-  .delete("/:boardId/columns/:columnId", controllers.removeColumn);
-// .patch("/:todoId", controllers.update)
-// .post("/select", controllers.select)
-// .post("/unselect", controllers.unselect)
-// .post("/clear", controllers.removeCompleted);
+  .post("/:boardId", controllers.addColumn)
+  .delete("/:columnId", controllers.removeColumn);
 
 module.exports = router;

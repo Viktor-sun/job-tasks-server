@@ -1,10 +1,14 @@
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const { HttpCode } = require("../constants/constants");
 const usersRepository = require("../repositories/users");
+require("dotenv").config();
+
+const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET;
 
 const singup = async (req, res, next) => {
-  const { name, password } = req.body;
   try {
+    const { name, password } = req.body;
     const hasUser = await usersRepository.findByName(name);
     if (hasUser) {
       return next({
@@ -14,12 +18,12 @@ const singup = async (req, res, next) => {
     }
 
     const hash = await bcrypt.hash(password, 8);
-    const user = await usersRepository.signup({ name, password: hash });
-    const userLogined = await usersRepository.login(user._id);
+    const user = await usersRepository.create({ name, password: hash });
+
     res.status(HttpCode.OK).json({
       status: "success",
       code: HttpCode.OK,
-      data: { user: userLogined },
+      data: { user },
     });
   } catch (error) {
     next(error);
@@ -39,12 +43,15 @@ const login = async (req, res, next) => {
       });
     }
 
-    const userLogined = await usersRepository.login(user._id);
+    const userId = user._id;
+    const payload = { _id: userId };
+    const token = jwt.sign(payload, JWT_ACCESS_SECRET, { expiresIn: "1h" });
+    await usersRepository.updateToken(userId, token);
 
     res.status(HttpCode.OK).json({
       status: "success",
       code: HttpCode.OK,
-      data: { user: userLogined },
+      data: { user: token },
     });
   } catch (error) {
     next(error);
@@ -53,12 +60,12 @@ const login = async (req, res, next) => {
 
 const logout = async (req, res, next) => {
   try {
-    const user = await usersRepository.logout(req.body._id);
+    const userId = req.user._id;
+    await usersRepository.updateToken(userId, null);
 
-    res.status(HttpCode.OK).json({
+    res.status(HttpCode.NO_CONTENT).json({
       status: "success",
-      code: HttpCode.OK,
-      data: { user },
+      code: HttpCode.NO_CONTENT,
     });
   } catch (error) {
     next(error);
@@ -67,7 +74,8 @@ const logout = async (req, res, next) => {
 
 const getCurrent = async (req, res, next) => {
   try {
-    const user = await usersRepository.findById(req.params.userId);
+    const userId = req.user._id;
+    const user = await usersRepository.findById(userId);
     res.status(HttpCode.OK).json({
       status: "success",
       code: HttpCode.OK,
@@ -77,5 +85,7 @@ const getCurrent = async (req, res, next) => {
     next(error);
   }
 };
+
+const refreshToken = async (req, res, next) => {};
 
 module.exports = { singup, login, logout, getCurrent };
