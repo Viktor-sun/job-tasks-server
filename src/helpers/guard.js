@@ -21,9 +21,26 @@ const guard = (req, res, next) => {
     req.user = decodedData;
 
     next();
-  } catch (error) {
-    console.log(error);
-    return res.status(HttpCode.UNAUTHORIZED).json({
+  } catch (e) {
+    console.log(e);
+
+    if (e instanceof jwt.TokenExpiredError) {
+      return res.status(HttpCode.UNAUTHORIZED).json({
+        status: "error",
+        code: HttpCode.UNAUTHORIZED,
+        message: "token expired!",
+      });
+    }
+
+    if (e instanceof jwt.JsonWebTokenError) {
+      return res.status(HttpCode.UNAUTHORIZED).json({
+        status: "error",
+        code: HttpCode.UNAUTHORIZED,
+        message: "invalid token",
+      });
+    }
+
+    res.status(HttpCode.UNAUTHORIZED).json({
       status: "error",
       code: HttpCode.UNAUTHORIZED,
       message: "user unauthorized",

@@ -2,9 +2,10 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { HttpCode } = require("../constants/constants");
 const usersRepository = require("../repositories/users");
+const generateTokens = require("../helpers/generateTokens");
 require("dotenv").config();
 
-const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET;
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
 
 const singup = async (req, res, next) => {
   try {
@@ -43,15 +44,15 @@ const login = async (req, res, next) => {
       });
     }
 
-    const userId = user._id;
-    const payload = { _id: userId };
-    const token = jwt.sign(payload, JWT_ACCESS_SECRET, { expiresIn: "1h" });
-    await usersRepository.updateToken(userId, token);
+    const payload = { userId: user._id };
+    const { accessToken, refreshToken } = generateTokens(payload);
+    // res.cookie()
+    await usersRepository.updateRefreshToken(user._id, refreshToken);
 
     res.status(HttpCode.OK).json({
       status: "success",
       code: HttpCode.OK,
-      data: { user: token },
+      data: { name: user.name, accessToken, refreshToken },
     });
   } catch (error) {
     next(error);
@@ -61,7 +62,8 @@ const login = async (req, res, next) => {
 const logout = async (req, res, next) => {
   try {
     const userId = req.user._id;
-    await usersRepository.updateToken(userId, null);
+    // delete res.cookie();
+    await usersRepository.updateRefreshToken(userId, null);
 
     res.status(HttpCode.NO_CONTENT).json({
       status: "success",
@@ -86,6 +88,40 @@ const getCurrent = async (req, res, next) => {
   }
 };
 
-const refreshToken = async (req, res, next) => {};
+const refreshToken = async (req, res, next) => {
+  const token = req.cookies;
+  const token = req.body.refreshToken;
+  let tokenData = null;
+  try {
+    tokenData = jwt.verify(token, JWT_REFRESH_SECRET);
+  } catch (e) {
+    if (e instanceof jwt.TokenExpiredError) {
+      return res.status(HttpCode.BAD_REQUEST).json({
+        status: "error",
+        code: HttpCode.BAD_REQUEST,
+        message: "token expired!",
+      });
+    }
 
-module.exports = { singup, login, logout, getCurrent };
+    if (e instanceof jwt.JsonWebTokenError) {
+      return res.status(HttpCode.BAD_REQUEST).json({
+        status: "error",
+        code: HttpCode.BAD_REQUEST,
+        message: "invalid token",
+      });
+    }
+  }
+
+  const payload = { userId: tokenData._id };
+  const { accessToken, refreshToken } = generateTokens(payload);
+
+  await usersRepository.updateRefreshToken(tokenData._id, refreshToken);
+
+  res.status(HttpCode.OK).json({
+    status: "success",
+    code: HttpCode.OK,
+    data: { accessToken, refreshToken },
+  });
+};
+
+module.exports = { singup, login, logout, getCurrent, refreshToken };

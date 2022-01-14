@@ -7,7 +7,7 @@ const usersSchema = new Schema(
       type: String,
       required: [true, "field password is required"],
     },
-    token: { type: String, default: null },
+    refreshToken: { type: String, default: null },
     // isVerified: {
     //   type: Boolean,
     //   default: false,

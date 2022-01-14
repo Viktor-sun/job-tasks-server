@@ -7,6 +7,7 @@ router
   .post("/signup", controllers.singup)
   .post("/login", controllers.login)
   .post("/logout", guard, controllers.logout)
-  .get("/current", guard, controllers.getCurrent);
+  .get("/current", guard, controllers.getCurrent)
+  .post("/refresh", controllers.refreshToken);
 
 module.exports = router;
