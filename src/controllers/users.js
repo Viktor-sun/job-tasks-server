@@ -116,6 +116,8 @@ const refreshToken = async (req, res, next) => {
     }
   }
 
+  res.clearCookie("refreshToken");
+
   const payload = { userId: tokenData.userId };
   const { accessToken, refreshToken } = generateTokens(payload);
 
@@ -124,10 +126,19 @@ const refreshToken = async (req, res, next) => {
     refreshToken
   );
 
+  res.cookie("refreshToken", refreshToken, {
+    maxAge: 1 * 24 * 60 * 60 * 1000,
+    httpOnly: true,
+  });
+
   res.status(HttpCode.OK).json({
     status: "success",
     code: HttpCode.OK,
-    data: { name: user.name, accessToken, refreshToken },
+    data: {
+      name: user.name,
+      accessToken,
+      refreshToken,
+    },
   });
 };
 

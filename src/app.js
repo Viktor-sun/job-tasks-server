@@ -7,9 +7,9 @@ const { HttpCode } = require("./constants/constants");
 
 const formatsLogger = app.get("env") === "development" ? "dev" : "short";
 
-app.use(cors());
 app.use(express.json({ limit: 10000 }));
 app.use(cookieParser());
+app.use(cors({ credentials: true, origin: "http://localhost:3000" }));
 app.use(logger(formatsLogger));
 
 app.use("/", require("./routes"));

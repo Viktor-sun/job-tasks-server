@@ -8,19 +8,15 @@ const usersSchema = new Schema(
       required: [true, "field password is required"],
     },
     refreshToken: { type: String, default: null },
-    // isVerified: {
-    //   type: Boolean,
-    //   default: false,
-    // },
   },
   {
     versionKey: false,
-    // toJSON: {
-    //   transform: function (doc, ret) {
-    //     delete ret.password;
-    //     return ret;
-    //   },
-    // },
+    toJSON: {
+      transform: function (doc, ret) {
+        delete ret.password;
+        return ret;
+      },
+    },
   }
 );
 

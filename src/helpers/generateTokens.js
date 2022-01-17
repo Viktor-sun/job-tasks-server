@@ -6,10 +6,10 @@ const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
 
 const generateTokens = (payload) => {
   const accessToken = jwt.sign(payload, JWT_ACCESS_SECRET, {
-    expiresIn: "5m",
+    expiresIn: "30s",
   });
   const refreshToken = jwt.sign(payload, JWT_REFRESH_SECRET, {
-    expiresIn: "10m",
+    expiresIn: "1m",
   });
   return { accessToken, refreshToken };
 };

@@ -8,6 +8,6 @@ router
   .post("/login", controllers.login)
   .post("/logout", guard, controllers.logout)
   .get("/current", guard, controllers.getCurrent)
-  .post("/refresh", controllers.refreshToken);
+  .get("/refresh", controllers.refreshToken);
 
 module.exports = router;
