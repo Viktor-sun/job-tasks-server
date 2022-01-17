@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
 const cors = require("cors");
+const cookieParser = require("cookie-parser");
 const logger = require("morgan");
 const { HttpCode } = require("./constants/constants");
 
@@ -8,6 +9,7 @@ const formatsLogger = app.get("env") === "development" ? "dev" : "short";
 
 app.use(cors());
 app.use(express.json({ limit: 10000 }));
+app.use(cookieParser());
 app.use(logger(formatsLogger));
 
 app.use("/", require("./routes"));

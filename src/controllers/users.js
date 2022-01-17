@@ -46,9 +46,12 @@ const login = async (req, res, next) => {
 
     const payload = { userId: user._id };
     const { accessToken, refreshToken } = generateTokens(payload);
-    // res.cookie()
 
     await usersRepository.updateRefreshToken(user._id, refreshToken);
+    res.cookie("refreshToken", refreshToken, {
+      maxAge: 1 * 24 * 60 * 60 * 1000,
+      httpOnly: true,
+    });
 
     res.status(HttpCode.OK).json({
       status: "success",
@@ -63,9 +66,9 @@ const login = async (req, res, next) => {
 const logout = async (req, res, next) => {
   try {
     const userId = req.user.userId;
-    // delete res.cookie();
 
     await usersRepository.updateRefreshToken(userId, null);
+    res.clearCookie("refreshToken");
 
     res.status(HttpCode.NO_CONTENT).json({
       status: "success",
@@ -78,8 +81,7 @@ const logout = async (req, res, next) => {
 
 const getCurrent = async (req, res, next) => {
   try {
-    const userId = req.user._id;
-    const user = await usersRepository.findById(userId);
+    const user = await usersRepository.findById(req.user.userId);
     res.status(HttpCode.OK).json({
       status: "success",
       code: HttpCode.OK,
@@ -91,8 +93,8 @@ const getCurrent = async (req, res, next) => {
 };
 
 const refreshToken = async (req, res, next) => {
-  // const token = req.cookies;
-  const token = req.body.refreshToken;
+  const token = req.cookies.refreshToken;
+
   let tokenData = null;
   try {
     tokenData = jwt.verify(token, JWT_REFRESH_SECRET);
