@@ -47,6 +47,7 @@ const login = async (req, res, next) => {
     const payload = { userId: user._id };
     const { accessToken, refreshToken } = generateTokens(payload);
     // res.cookie()
+
     await usersRepository.updateRefreshToken(user._id, refreshToken);
 
     res.status(HttpCode.OK).json({
@@ -61,8 +62,9 @@ const login = async (req, res, next) => {
 
 const logout = async (req, res, next) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user.userId;
     // delete res.cookie();
+
     await usersRepository.updateRefreshToken(userId, null);
 
     res.status(HttpCode.NO_CONTENT).json({
@@ -89,7 +91,7 @@ const getCurrent = async (req, res, next) => {
 };
 
 const refreshToken = async (req, res, next) => {
-  const token = req.cookies;
+  // const token = req.cookies;
   const token = req.body.refreshToken;
   let tokenData = null;
   try {
@@ -112,15 +114,18 @@ const refreshToken = async (req, res, next) => {
     }
   }
 
-  const payload = { userId: tokenData._id };
+  const payload = { userId: tokenData.userId };
   const { accessToken, refreshToken } = generateTokens(payload);
 
-  await usersRepository.updateRefreshToken(tokenData._id, refreshToken);
+  const user = await usersRepository.updateRefreshToken(
+    tokenData.userId,
+    refreshToken
+  );
 
   res.status(HttpCode.OK).json({
     status: "success",
     code: HttpCode.OK,
-    data: { accessToken, refreshToken },
+    data: { name: user.name, accessToken, refreshToken },
   });
 };
 

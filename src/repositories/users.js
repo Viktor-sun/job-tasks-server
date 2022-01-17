@@ -15,7 +15,12 @@ const create = async (body) => {
 };
 
 const updateRefreshToken = async (userId, refreshToken) => {
-  return await User.updateOne({ _id: userId }, { refreshToken });
+  const user = await User.findOneAndUpdate(
+    { _id: userId },
+    { refreshToken },
+    { new: true }
+  );
+  return user;
 };
 
 module.exports = { findByName, findById, create, updateRefreshToken };
