@@ -3,7 +3,8 @@ const cardRepository = require("../repositories/card");
 
 const addCard = async (req, res, next) => {
   try {
-    const card = await cardRepository.addCard(req.params.columnId, req.body);
+    const { boardId, columnId } = req.params;
+    const card = await cardRepository.addCard(boardId, columnId, req.body);
 
     res.status(HttpCode.CREATED).json({
       status: "success",
@@ -18,6 +19,20 @@ const addCard = async (req, res, next) => {
 const getAllCards = async (req, res, next) => {
   try {
     const cards = await cardRepository.getAllCards();
+
+    res.status(HttpCode.OK).json({
+      status: "success",
+      code: HttpCode.OK,
+      data: { cards },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getCardsByBoardId = async (req, res, next) => {
+  try {
+    const cards = await cardRepository.getCardsByBoardId(req.params.boardId);
 
     res.status(HttpCode.OK).json({
       status: "success",
@@ -56,4 +71,10 @@ const editCard = async (req, res, next) => {
   }
 };
 
-module.exports = { addCard, getAllCards, removeCard, editCard };
+module.exports = {
+  addCard,
+  getAllCards,
+  getCardsByBoardId,
+  removeCard,
+  editCard,
+};

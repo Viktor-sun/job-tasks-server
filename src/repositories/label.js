@@ -6,10 +6,15 @@ const getAllLables = async () => {
   return label;
 };
 
+const getLablesByOwnerId = async (boardId) => {
+  const label = await Label.find({ owner: boardId }); //.populate({path: "owner", select: "label"});
+  return label;
+};
+
 const addLabel = async (boardId, body) => {
   const label = await Label.create({ owner: boardId, ...body });
   await boardRepository.addLabel(boardId, label._id);
   return label;
 };
 
-module.exports = { getAllLables, addLabel };
+module.exports = { getAllLables, getLablesByOwnerId, addLabel };

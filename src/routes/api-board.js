@@ -5,8 +5,8 @@ const guard = require("../helpers/guard");
 
 router
   .get("/", guard, controllers.getAllBoards)
-  .post("/", controllers.createBoard)
-  .post("/:boardId", controllers.addColumn)
-  .delete("/:columnId", controllers.removeColumn);
+  .post("/", guard, controllers.createBoard)
+  .post("/:boardId", guard, controllers.addColumn)
+  .delete("/:columnId", guard, controllers.removeColumn);
 
 module.exports = router;

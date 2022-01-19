@@ -98,6 +98,31 @@ const refreshToken = async (req, res, next) => {
   let tokenData = null;
   try {
     tokenData = jwt.verify(token, JWT_REFRESH_SECRET);
+
+    res.clearCookie("refreshToken");
+
+    const payload = { userId: tokenData.userId };
+    const { accessToken, refreshToken } = generateTokens(payload);
+
+    const user = await usersRepository.updateRefreshToken(
+      tokenData.userId,
+      refreshToken
+    );
+
+    res.cookie("refreshToken", refreshToken, {
+      maxAge: 1 * 24 * 60 * 60 * 1000,
+      httpOnly: true,
+    });
+
+    res.status(HttpCode.OK).json({
+      status: "success",
+      code: HttpCode.OK,
+      data: {
+        name: user.name,
+        accessToken,
+        refreshToken,
+      },
+    });
   } catch (e) {
     if (e instanceof jwt.TokenExpiredError) {
       return res.status(HttpCode.BAD_REQUEST).json({
@@ -115,31 +140,6 @@ const refreshToken = async (req, res, next) => {
       });
     }
   }
-
-  res.clearCookie("refreshToken");
-
-  const payload = { userId: tokenData.userId };
-  const { accessToken, refreshToken } = generateTokens(payload);
-
-  const user = await usersRepository.updateRefreshToken(
-    tokenData.userId,
-    refreshToken
-  );
-
-  res.cookie("refreshToken", refreshToken, {
-    maxAge: 1 * 24 * 60 * 60 * 1000,
-    httpOnly: true,
-  });
-
-  res.status(HttpCode.OK).json({
-    status: "success",
-    code: HttpCode.OK,
-    data: {
-      name: user.name,
-      accessToken,
-      refreshToken,
-    },
-  });
 };
 
 module.exports = { singup, login, logout, getCurrent, refreshToken };

@@ -15,6 +15,22 @@ const getAllColumns = async (req, res, next) => {
   }
 };
 
+const getColumnsByOwnerId = async (req, res, next) => {
+  try {
+    const columns = await columnRepository.getColumnsByOwnerId(
+      req.params.boardId
+    );
+
+    res.status(HttpCode.OK).json({
+      status: "success",
+      code: HttpCode.OK,
+      data: { columns },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 const addColumn = async (req, res, next) => {
   try {
     const column = await columnRepository.addColumn(
@@ -45,4 +61,9 @@ const removeColumn = async (req, res, next) => {
   }
 };
 
-module.exports = { getAllColumns, addColumn, removeColumn };
+module.exports = {
+  getAllColumns,
+  getColumnsByOwnerId,
+  addColumn,
+  removeColumn,
+};

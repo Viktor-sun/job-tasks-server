@@ -3,7 +3,11 @@ const boardRepository = require("../repositories/board");
 
 const getAllColumns = async () => {
   const columns = await Column.find({}); //.populate({path: "owner", select: "title"});
+  return columns;
+};
 
+const getColumnsByOwnerId = async (boardId) => {
+  const columns = await Column.find({ owner: boardId }); //.populate({path: "owner", select: "title"});
   return columns;
 };
 
@@ -42,6 +46,7 @@ const removeCard = async (columnId, cardId) => {
 
 module.exports = {
   getAllColumns,
+  getColumnsByOwnerId,
   addColumn,
   removeColumn,
   addCard,

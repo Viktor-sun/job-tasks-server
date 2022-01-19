@@ -1,14 +1,19 @@
 const Card = require("../model/schema-card");
 const columnRepository = require("../repositories/column");
 
-const addCard = async (columnId, body) => {
-  const card = await Card.create({ owner: columnId, ...body });
+const addCard = async (boardId, columnId, body) => {
+  const card = await Card.create({ boardId, owner: columnId, ...body });
   await columnRepository.addCard(columnId, card._id);
   return card;
 };
 
 const getAllCards = async () => {
   const cards = await Card.find({}); //.populate({path: "owner", select: "title"});
+  return cards;
+};
+
+const getCardsByBoardId = async (boardId) => {
+  const cards = await Card.find({ boardId }); //.populate({path: "owner", select: "title"});
   return cards;
 };
 
@@ -27,6 +32,7 @@ const editCard = async (cardId, body) => {
 module.exports = {
   addCard,
   getAllCards,
+  getCardsByBoardId,
   removeCard,
   editCard,
 };
