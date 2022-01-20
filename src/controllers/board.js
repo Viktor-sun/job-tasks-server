@@ -29,6 +29,20 @@ const getAllBoards = async (_req, res, next) => {
   }
 };
 
+const getBoardById = async (req, res, next) => {
+  try {
+    const board = await boardRepository.getById(req.params.boardId);
+
+    res.status(HttpCode.OK).json({
+      status: "success",
+      code: HttpCode.OK,
+      data: { board },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 const addColumn = async (req, res, next) => {
   try {
     const boards = await boardRepository.addColumn(
@@ -66,6 +80,7 @@ const removeColumn = async (req, res, next) => {
 module.exports = {
   createBoard,
   getAllBoards,
+  getBoardById,
   addColumn,
   removeColumn,
 };

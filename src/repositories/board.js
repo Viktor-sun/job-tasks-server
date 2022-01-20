@@ -10,6 +10,11 @@ const getAllBoards = async () => {
   return boards;
 };
 
+const getById = async (id) => {
+  const boards = await Board.findById(id);
+  return boards;
+};
+
 const addColumn = async (boardId, columnId) => {
   const board = await Board.updateOne(
     { _id: boardId },
@@ -42,6 +47,7 @@ const addLabel = async (boardId, labelId) => {
 module.exports = {
   createBoard,
   getAllBoards,
+  getById,
   addColumn,
   removeColumn,
   addLabel,
