@@ -1,5 +1,6 @@
 const Column = require("../model/schema-column");
 const boardRepository = require("../repositories/board");
+const Card = require("../model/schema-card");
 
 const getAllColumns = async () => {
   const columns = await Column.find({}); //.populate({path: "owner", select: "title"});
@@ -20,6 +21,7 @@ const addColumn = async (boardId, body) => {
 const removeColumn = async (columnId) => {
   const column = await Column.findByIdAndRemove(columnId);
   await boardRepository.removeColumn(column.owner, columnId);
+  await Card.deleteMany({ owner: columnId });
   return column;
 };
 

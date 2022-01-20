@@ -17,6 +17,11 @@ const getCardsByBoardId = async (boardId) => {
   return cards;
 };
 
+const getCardById = async (cardId) => {
+  const cards = await Card.findById(cardId);
+  return cards;
+};
+
 const removeCard = async (cardId) => {
   const card = await Card.findByIdAndRemove(cardId);
 
@@ -33,6 +38,7 @@ module.exports = {
   addCard,
   getAllCards,
   getCardsByBoardId,
+  getCardById,
   removeCard,
   editCard,
 };

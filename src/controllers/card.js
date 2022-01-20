@@ -44,6 +44,20 @@ const getCardsByBoardId = async (req, res, next) => {
   }
 };
 
+const getCardById = async (req, res, next) => {
+  try {
+    const card = await cardRepository.getCardById(req.params.cardId);
+
+    res.status(HttpCode.OK).json({
+      status: "success",
+      code: HttpCode.OK,
+      data: { card },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 const removeCard = async (req, res, next) => {
   try {
     await cardRepository.removeCard(req.params.cardId);
@@ -75,6 +89,7 @@ module.exports = {
   addCard,
   getAllCards,
   getCardsByBoardId,
+  getCardById,
   removeCard,
   editCard,
 };
