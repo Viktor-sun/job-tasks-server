@@ -7,7 +7,7 @@ router
   .get("/", guard, controllers.getAllCards)
   .get("/:boardId", guard, controllers.getCardsByBoardId)
   .get("/:cardId/one", guard, controllers.getCardById)
-  .post("/:boardId/:columnId", guard, controllers.addCard)
+  .post("/:boardId/:columnId/add", guard, controllers.addCard)
   .delete("/:cardId", guard, controllers.removeCard)
   .post("/:cardId/edit", guard, controllers.editCard);
 
